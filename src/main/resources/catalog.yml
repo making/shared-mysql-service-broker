@@ -1,0 +1,30 @@
+---
+services:
+- id: 445d9bca-ba54-11e7-8f28-89aab798d359
+  name: shared-mysql
+  description: Shared MySQL
+  bindable: true
+  planUpdateable: false
+  requires: []
+  tags:
+  - mysql
+  metadata:
+    displayName: Shared MySQL
+    documentationUrl: https://twitter.com/making
+    imageUrl: https://avatars2.githubusercontent.com/u/2452804?s=200&v=4
+    longDescription: Shared MySQL
+    providerDisplayName: "@making"
+    supportUrl: https://twitter.com/making
+  plans:
+  - id: 517cf274-ba54-11e7-8f28-89aab798d359
+    name: shared
+    description: Shared
+    free: true
+    metadata:
+      displayName: Shared
+      bullets:
+      - Shared
+      costs:
+      - amount:
+          usd: 0
+        unit: MONTHLY
