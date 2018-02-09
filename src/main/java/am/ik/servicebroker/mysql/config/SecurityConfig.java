@@ -1,6 +1,6 @@
 package am.ik.servicebroker.mysql.config;
 
-import org.springframework.boot.actuate.autoconfigure.security.EndpointRequest;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

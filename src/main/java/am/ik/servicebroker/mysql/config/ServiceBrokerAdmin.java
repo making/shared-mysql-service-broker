@@ -58,9 +58,4 @@ public class ServiceBrokerAdmin implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
-    @Override
-    public String getName() {
-        return this.username;
-    }
 }
