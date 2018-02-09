@@ -41,7 +41,7 @@ public class ServiceInstanceBindingController {
 
         String name = this.jdbcTemplate.queryForObject("SELECT db_name FROM service_instance WHERE instance_id = ?",
                 String.class, instanceId);
-        String username = UUID.randomUUID().toString().replace("-", "");
+        String username = UUID.randomUUID().toString().replace("-", "").substring(16);
         String password = UUID.randomUUID().toString().replace("-", "");
 
         this.jdbcTemplate.update("INSERT INTO service_instance_binding(instance_id, binding_id, username) VALUES(?, ?, ?)",
