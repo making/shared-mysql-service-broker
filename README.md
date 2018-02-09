@@ -10,6 +10,6 @@ cf push
 
 
 ```
-cf create-service-broker https://shared-mysql-service-broker.<apps domain> admin password
+cf create-service-broker shared-mysql admin password https://shared-mysql-service-broker.<apps domain>
 cf enable-service-access shared-mysql
 ```
