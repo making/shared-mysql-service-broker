@@ -9,7 +9,7 @@
     <packaging>jar</packaging>
 
     <name>shared-mysql-service-broker</name>
-    <description>Demo project for Spring Boot</description>
+    <description>Open Service Broker API for an existing shared MySQL</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
