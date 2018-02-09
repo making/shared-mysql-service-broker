@@ -1,0 +1,11 @@
+version: "2"
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: mysql_service_broker_test
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
