@@ -19,11 +19,11 @@ public class CatalogControllerTest {
 	WebTestClient webClient;
 
 	@Before
-	public void setup() {
-		this.webClient = WebTestClient.bindToServer() //
-				.baseUrl("http://localhost:" + port) //
-				.build();
-	}
+    public void setup() {
+        this.webClient = WebTestClient.bindToServer() //
+                .baseUrl("http://localhost:" + port) //
+                .build();
+    }
 
 	@Test
 	public void catalogUnauthorized() {
@@ -47,10 +47,12 @@ public class CatalogControllerTest {
 				.exchange() //
 				.expectStatus().isEqualTo(HttpStatus.OK) //
 				.expectBody() //
+				.jsonPath("$.services.length()").isEqualTo(1) //
 				.jsonPath("$.services[0].id")
 				.isEqualTo("445d9bca-ba54-11e7-8f28-89aab798d359") //
 				.jsonPath("$.services[0].name").isEqualTo("shared-mysql") //
 				.jsonPath("$.services[0].bindable").isEqualTo(true) //
+				.jsonPath("$.services[0].tags.length()").isEqualTo(1) //
 				.jsonPath("$.services[0].tags[0]").isEqualTo("mysql") //
 				.jsonPath("$.services[0].metadata.displayName").isEqualTo("Shared MySQL") //
 				.jsonPath("$.services[0].plans[0].id")
