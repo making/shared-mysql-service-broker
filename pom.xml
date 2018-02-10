@@ -11,6 +11,29 @@
     <name>shared-mysql-service-broker</name>
     <description>Open Service Broker API for an existing shared MySQL</description>
 
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <url>https://github.com/making/shared-mysql-service-broker</url>
+        <connection>scm:git:git@github.com:making/shared-mysql-service-broker.git</connection>
+        <developerConnection>scm:git:git@github.com:making/shared-mysql-service-broker.git</developerConnection>
+    </scm>
+    <url>https://github.com/making/shared-mysql-service-broker</url>
+
+    <developers>
+        <developer>
+            <id>making</id>
+            <name>Toshiaki Maki</name>
+            <email>makingx@gmail.com</email>
+            <url>https://twitter.com/making</url>
+        </developer>
+    </developers>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
