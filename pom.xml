@@ -5,7 +5,7 @@
 
     <groupId>am.ik.servicebroker</groupId>
     <artifactId>shared-smysql-service-broker</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>shared-mysql-service-broker</name>
