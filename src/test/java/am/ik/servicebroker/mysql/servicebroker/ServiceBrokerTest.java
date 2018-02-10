@@ -329,6 +329,13 @@ public class ServiceBrokerTest {
 				.expectStatus().isEqualTo(HttpStatus.CONFLICT);
 
 		this.webClient.delete() //
+				.uri("/v2/service_instances/{serviceInstanceId1}/service_bindings/{serviceBindingId}",
+						serviceInstanceId, serviceBindingId) //
+				.header(HttpHeaders.AUTHORIZATION, "Basic dGVzdDpiYXI=") //
+				.exchange() //
+				.expectStatus().isOk();
+
+		this.webClient.delete() //
 				.uri("/v2/service_instances/{serviceInstanceId}", serviceInstanceId) //
 				.header(HttpHeaders.AUTHORIZATION, "Basic dGVzdDpiYXI=") //
 				.exchange() //
@@ -354,16 +361,24 @@ public class ServiceBrokerTest {
 				.expectStatus().isCreated();
 
 		this.webClient.delete() //
-				.uri("/v2/service_instances/{serviceInstanceId}", serviceInstanceId) //
+				.uri("/v2/service_instances/{serviceInstanceId1}/service_bindings/{serviceBindingId}",
+						serviceInstanceId, serviceBindingId) //
 				.header(HttpHeaders.AUTHORIZATION, "Basic dGVzdDpiYXI=") //
 				.exchange() //
 				.expectStatus().isOk();
 
 		this.webClient.delete() //
-				.uri("/v2/service_instances/{serviceInstanceId}", serviceInstanceId) //
+				.uri("/v2/service_instances/{serviceInstanceId1}/service_bindings/{serviceBindingId}",
+						serviceInstanceId, serviceBindingId) //
 				.header(HttpHeaders.AUTHORIZATION, "Basic dGVzdDpiYXI=") //
 				.exchange() //
 				.expectStatus().isEqualTo(HttpStatus.GONE);
+
+		this.webClient.delete() //
+				.uri("/v2/service_instances/{serviceInstanceId}", serviceInstanceId) //
+				.header(HttpHeaders.AUTHORIZATION, "Basic dGVzdDpiYXI=") //
+				.exchange() //
+				.expectStatus().isOk();
 	}
 
 	private void checkServiceInstance(String jdbcUrl, String username, String password) {
