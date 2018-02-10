@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -19,6 +20,7 @@ import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -56,7 +58,9 @@ public class ServiceBrokerTest {
 				.returnResult();
 
 		checkServiceInstance(
-				binding.getResponseBody().get("credentials").get("jdbcUrl").asText());
+				binding.getResponseBody().get("credentials").get("jdbcUrl").asText(),
+				binding.getResponseBody().get("credentials").get("username").asText(),
+				binding.getResponseBody().get("credentials").get("password").asText());
 
 		this.webClient.delete() //
 				.uri("/v2/service_instances/{serviceInstanceId}/service_bindings/{serviceBindingId}",
@@ -94,7 +98,9 @@ public class ServiceBrokerTest {
 				.returnResult();
 
 		checkServiceInstance(
-				binding1.getResponseBody().get("credentials").get("jdbcUrl").asText());
+				binding1.getResponseBody().get("credentials").get("jdbcUrl").asText(),
+				binding1.getResponseBody().get("credentials").get("username").asText(),
+				binding1.getResponseBody().get("credentials").get("password").asText());
 
 		EntityExchangeResult<JsonNode> binding2 = this.webClient.put() //
 				.uri("/v2/service_instances/{serviceInstanceId}/service_bindings/{serviceBindingId}",
@@ -106,7 +112,9 @@ public class ServiceBrokerTest {
 				.returnResult();
 
 		checkServiceInstance(
-				binding2.getResponseBody().get("credentials").get("jdbcUrl").asText());
+				binding2.getResponseBody().get("credentials").get("jdbcUrl").asText(),
+				binding2.getResponseBody().get("credentials").get("username").asText(),
+				binding2.getResponseBody().get("credentials").get("password").asText());
 
 		this.webClient.delete() //
 				.uri("/v2/service_instances/{serviceInstanceId}/service_bindings/{serviceBindingId}",
@@ -124,6 +132,106 @@ public class ServiceBrokerTest {
 
 		this.webClient.delete() //
 				.uri("/v2/service_instances/{serviceInstanceId}", serviceInstanceId) //
+				.header(HttpHeaders.AUTHORIZATION, "Basic dGVzdDpiYXI=") //
+				.exchange() //
+				.expectStatus().isOk();
+	}
+
+	@Test
+	public void provisionTwiceButCannotAccessEachOther() {
+		String serviceInstanceId1 = UUID.randomUUID().toString();
+		String serviceInstanceId2 = UUID.randomUUID().toString();
+		String serviceBindingId1 = UUID.randomUUID().toString();
+		String serviceBindingId2 = UUID.randomUUID().toString();
+
+		this.webClient.put() //
+				.uri("/v2/service_instances/{serviceInstanceId1}", serviceInstanceId1) //
+				.header(HttpHeaders.AUTHORIZATION, "Basic dGVzdDpiYXI=") //
+				.exchange() //
+				.expectStatus().isCreated();
+
+		this.webClient.put() //
+				.uri("/v2/service_instances/{serviceInstanceId1}", serviceInstanceId2) //
+				.header(HttpHeaders.AUTHORIZATION, "Basic dGVzdDpiYXI=") //
+				.exchange() //
+				.expectStatus().isCreated();
+
+		EntityExchangeResult<JsonNode> binding1 = this.webClient.put() //
+				.uri("/v2/service_instances/{serviceInstanceId1}/service_bindings/{serviceBindingId}",
+						serviceInstanceId1, serviceBindingId1) //
+				.header(HttpHeaders.AUTHORIZATION, "Basic dGVzdDpiYXI=") //
+				.exchange() //
+				.expectStatus().isCreated() //
+				.expectBody(JsonNode.class) //
+				.returnResult();
+
+		EntityExchangeResult<JsonNode> binding2 = this.webClient.put() //
+				.uri("/v2/service_instances/{serviceInstanceId1}/service_bindings/{serviceBindingId}",
+						serviceInstanceId2, serviceBindingId2) //
+				.header(HttpHeaders.AUTHORIZATION, "Basic dGVzdDpiYXI=") //
+				.exchange() //
+				.expectStatus().isCreated() //
+				.expectBody(JsonNode.class) //
+				.returnResult();
+
+		checkServiceInstance(
+				binding1.getResponseBody().get("credentials").get("jdbcUrl").asText(),
+				binding1.getResponseBody().get("credentials").get("username").asText(),
+				binding1.getResponseBody().get("credentials").get("password").asText());
+
+		checkServiceInstance(
+				binding2.getResponseBody().get("credentials").get("jdbcUrl").asText(),
+				binding2.getResponseBody().get("credentials").get("username").asText(),
+				binding2.getResponseBody().get("credentials").get("password").asText());
+
+		try {
+			checkServiceInstance(
+					binding2.getResponseBody().get("credentials").get("jdbcUrl").asText(),
+					binding1.getResponseBody().get("credentials").get("username")
+							.asText(),
+					binding1.getResponseBody().get("credentials").get("password")
+							.asText());
+			fail("The access should be denied.");
+		}
+		catch (CannotGetJdbcConnectionException e) {
+			assertThat(e.getMessage()).contains("Access denied for user");
+		}
+
+		try {
+			checkServiceInstance(
+					binding1.getResponseBody().get("credentials").get("jdbcUrl").asText(),
+					binding2.getResponseBody().get("credentials").get("username")
+							.asText(),
+					binding2.getResponseBody().get("credentials").get("password")
+							.asText());
+			fail("The access should be denied.");
+		}
+		catch (CannotGetJdbcConnectionException e) {
+			assertThat(e.getMessage()).contains("Access denied for user");
+		}
+
+		this.webClient.delete() //
+				.uri("/v2/service_instances/{serviceInstanceId1}/service_bindings/{serviceBindingId}",
+						serviceInstanceId1, serviceBindingId1) //
+				.header(HttpHeaders.AUTHORIZATION, "Basic dGVzdDpiYXI=") //
+				.exchange() //
+				.expectStatus().isOk();
+
+		this.webClient.delete() //
+				.uri("/v2/service_instances/{serviceInstanceId1}/service_bindings/{serviceBindingId}",
+						serviceInstanceId2, serviceBindingId2) //
+				.header(HttpHeaders.AUTHORIZATION, "Basic dGVzdDpiYXI=") //
+				.exchange() //
+				.expectStatus().isOk();
+
+		this.webClient.delete() //
+				.uri("/v2/service_instances/{serviceInstanceId1}", serviceInstanceId1) //
+				.header(HttpHeaders.AUTHORIZATION, "Basic dGVzdDpiYXI=") //
+				.exchange() //
+				.expectStatus().isOk();
+
+		this.webClient.delete() //
+				.uri("/v2/service_instances/{serviceInstanceId1}", serviceInstanceId2) //
 				.header(HttpHeaders.AUTHORIZATION, "Basic dGVzdDpiYXI=") //
 				.exchange() //
 				.expectStatus().isOk();
@@ -228,7 +336,7 @@ public class ServiceBrokerTest {
 	}
 
 	@Test
-	public void goInUnbinding() {
+	public void goneInUnbinding() {
 		String serviceInstanceId = UUID.randomUUID().toString();
 		String serviceBindingId = UUID.randomUUID().toString();
 
@@ -258,10 +366,12 @@ public class ServiceBrokerTest {
 				.expectStatus().isEqualTo(HttpStatus.GONE);
 	}
 
-	private void checkServiceInstance(String jdbcUrl) {
+	private void checkServiceInstance(String jdbcUrl, String username, String password) {
 		SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
 		dataSource.setDriverClass(Driver.class);
 		dataSource.setUrl(jdbcUrl);
+		dataSource.setUsername(username);
+		dataSource.setPassword(password);
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
 		String id = UUID.randomUUID().toString();
