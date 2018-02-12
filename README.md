@@ -37,5 +37,5 @@ kubectl apply -f k8s
 ### How to create and bind a service instance
 
 ```
-kubectl apply -f sample
+kubectl apply -f k8s/sample
 ```
