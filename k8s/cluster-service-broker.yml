@@ -1,0 +1,11 @@
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ClusterServiceBroker
+metadata:
+  name: shared-mysql
+spec:
+  url: http://shared-mysql-service-broker-service.osb.svc.cluster.local
+  authInfo:
+    basic:
+      secretRef:
+        name: shared-mysql-service-broker-secret
+        namespace: osb

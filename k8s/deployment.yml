@@ -1,0 +1,95 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: shared-mysql-service-broker-service
+  namespace: osb
+  labels:
+    app: shared-mysql-service-broker
+spec:
+  selector:
+    app: shared-mysql-service-broker
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: shared-mysql-service-broker
+  namespace: osb
+  labels:
+    app: shared-mysql-service-broker
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: shared-mysql-service-broker
+    spec:
+      containers:
+      - name: shared-mysql-service-broker
+        image: making/shared-mysql-service-broker:0.0.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SERVER_PORT
+          value: "8080"
+        - name: SPRING_PROFILES_ACTIVE
+          value: kubernetes
+        - name: _JAVA_OPTIONS
+          value: "-Xmx300M -XX:MaxMetaspaceSize=100M -XX:ReservedCodeCacheSize=32M -Xss512k -XX:CompressedClassSpaceSize=24M -XX:MaxDirectMemorySize=10M -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1 -XX:+PrintCodeCache"
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            secretKeyRef:
+              name: shared-mysql-service-broker-secret
+              key: mysql-jdbc-url
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: shared-mysql-service-broker-secret
+              key: mysql-username
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: shared-mysql-service-broker-secret
+              key: mysql-password
+        - name: SERVICE_BROKER_ADMIN_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: shared-mysql-service-broker-secret
+              key: username
+        - name: SERVICE_BROKER_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: shared-mysql-service-broker-secret
+              key: password
+        resources:
+          limits:
+            memory: "500Mi"
+          requests:
+            memory: "500Mi"
+        # readinessProbe:
+        #   httpGet:
+        #     path: /actuator/health
+        #     port: 8080
+        #   initialDelaySeconds: 15
+        #   timeoutSeconds: 3
+        #   periodSeconds: 10
+        #   failureThreshold: 3
+        # livenessProbe:
+        #   httpGet:
+        #     path: /actuator/health
+        #     port: 8080
+        #   initialDelaySeconds: 180
+        #   timeoutSeconds: 3
+        #   periodSeconds: 10
+        #   failureThreshold: 3
