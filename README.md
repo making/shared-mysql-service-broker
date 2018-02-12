@@ -14,7 +14,7 @@ cf create-service-broker shared-mysql admin password https://shared-mysql-servic
 cf enable-service-access shared-mysql
 ```
 
-### How to create and bind a service instance
+### Create and bind a service instance
 
 ```
 cf create-service shared-mysql shared demo-db
@@ -34,7 +34,7 @@ cp k8s/secret.yml.old k8s/secret.yml
 kubectl apply -f k8s
 ```
 
-### How to create and bind a service instance
+### Create and bind a service instance
 
 ```
 kubectl apply -f k8s/sample
