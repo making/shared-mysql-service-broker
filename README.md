@@ -9,10 +9,16 @@ cf create-user-provided-service shared-mysql -p '{"url": "mysql://username:passw
 cf push
 ```
 
-
 ```
 cf create-service-broker shared-mysql admin password https://shared-mysql-service-broker.<apps domain>
 cf enable-service-access shared-mysql
+```
+
+### How to create and bind a service instance
+
+```
+cf create-service shared-mysql shared demo-db
+cf bind-service your-app demo-db
 ```
 
 ## Install the service broekr on Kubernetes
@@ -26,4 +32,10 @@ kubectl apply -f k8s/namespace.yml
 cp k8s/secret.yml.old k8s/secret.yml
 # Edit secret.yml for your environment
 kubectl apply -f k8s
+```
+
+### How to create and bind a service instance
+
+```
+kubectl apply -f sample
 ```
