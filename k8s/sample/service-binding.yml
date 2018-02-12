@@ -1,0 +1,8 @@
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ServiceBinding
+metadata:
+  name: demo-db-binding
+spec:
+  instanceRef:
+    name: demo-db
+  secretName: demo-db-secret
