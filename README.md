@@ -31,11 +31,15 @@ kubectl apply -f k8s/namespace.yml
 ```
 cp k8s/secret.yml.old k8s/secret.yml
 # Edit secret.yml for your environment
-kubectl apply -f k8s
+kubectl apply -f k8s/secret.yml
+kubectl apply -f k8s/deployment.yml
+kubectl apply -f k8s/cluster-service-broker.yml
 ```
 
 ### Create and bind a service instance
 
 ```
-kubectl apply -f k8s/sample
+kubectl apply -f k8s/sample/service-instance.yml
+kubectl apply -f k8s/sample/service-binding.yml
+kubectl apply -f k8s/sample/wordpress.yml
 ```
