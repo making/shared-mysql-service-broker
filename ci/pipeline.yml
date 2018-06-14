@@ -41,11 +41,6 @@ resources:
     type: slack-notification
     source:
       url: ((slack-webhook-url))
-  - name: mysql
-    type: docker-image
-    source:
-      repository: mysql
-      tag: 5.7
   - name: docker
     type: docker-image
     source:
@@ -72,48 +67,99 @@ resources:
       skip_cert_check: false
 jobs:
 ### Dev
-- name: unit-test-develop
+- name: unit-test-develop-mysql-5.7
   plan:
     - aggregate:
       - get: repo
         resource: repo-develop
         trigger: true
-      - get: mysql
-        params:
-          save: true
     - task: mvn-test
       privileged: true
       params:
         <<: *JAVA_OPS
+        MYSQL_IMAGE: mysql:5.7
       config: &MVN_TEST_CONFIG
         platform: linux
         image_resource:
           type: docker-image
           source:
-            repository: making/dcind-jdk
+            repository: springci/spring-boot-ci-image
+            tag: master
         inputs:
         - name: repo
-        - name: mysql
         caches:
-        - path: repo/m2
+        - path: maven
         run:
-          path: sh
+          path: bash
           args:
           - -c
           - |
             set -e
+            source /opt/concourse-java.sh
+            setup_symlinks
             source /docker-lib.sh
             start_docker
-            docker load -i mysql/image
-            docker tag "$(cat mysql/image-id)" "$(cat mysql/repository):$(cat mysql/tag)"
-            docker images
-            cd repo
-            rm -rf ~/.m2
-            ln -fs $(pwd)/m2 ~/.m2
-            docker-compose up -d
+            docker run -d \
+              --name mysql \
+              -e "MYSQL_DATABASE=mysql_service_broker_test" \
+              -e "MYSQL_ALLOW_EMPTY_PASSWORD=yes" \
+              -p 3306:3306 \
+              ${MYSQL_IMAGE}
+            docker ps
             sleep 3
-            mvn test
-            docker-compose down
+            cd repo
+            ./mvnw -f pom.xml test
+      on_failure:
+        put: slack-alert
+        params:
+          <<: *SLACK_FAILURE
+- name: unit-test-develop-mysql-8.0
+  plan:
+    - aggregate:
+      - get: repo
+        resource: repo-develop
+        trigger: true
+    - task: mvn-test
+      privileged: true
+      params:
+        <<: *JAVA_OPS
+        MYSQL_IMAGE: mysql:8.0
+      config:
+        <<: *MVN_TEST_CONFIG
+      on_failure:
+        put: slack-alert
+        params:
+          <<: *SLACK_FAILURE
+- name: unit-test-develop-mariadb-5.5
+  plan:
+    - aggregate:
+      - get: repo
+        resource: repo-develop
+        trigger: true
+    - task: mvn-test
+      privileged: true
+      params:
+        <<: *JAVA_OPS
+        MYSQL_IMAGE: mariadb:5.5
+      config:
+        <<: *MVN_TEST_CONFIG
+      on_failure:
+        put: slack-alert
+        params:
+          <<: *SLACK_FAILURE
+- name: unit-test-develop-mariadb-10.3
+  plan:
+    - aggregate:
+      - get: repo
+        resource: repo-develop
+        trigger: true
+    - task: mvn-test
+      privileged: true
+      params:
+        <<: *JAVA_OPS
+        MYSQL_IMAGE: mariadb:10.3
+      config:
+        <<: *MVN_TEST_CONFIG
       on_failure:
         put: slack-alert
         params:
@@ -123,7 +169,10 @@ jobs:
   - get: repo
     resource: repo-develop
     passed:
-    - unit-test-develop
+    - unit-test-develop-mysql-5.7
+    - unit-test-develop-mysql-8.0
+    - unit-test-develop-mariadb-5.5
+    - unit-test-develop-mariadb-10.3
     trigger: true
   - task: mvn-package
     config: &NEXUS_PACKAGE_CONFIG
@@ -270,13 +319,11 @@ jobs:
       passed:
       - merge-develop-to-master
     - get: repo-version
-    - get: mysql
-      params:
-        save: true
   - task: mvn-test
     privileged: true
     params:
       <<: *JAVA_OPS
+      MYSQL_IMAGE: mysql:5.7
     config:
       <<: *MVN_TEST_CONFIG
     on_failure:
