@@ -36,7 +36,7 @@ spec:
     spec:
       containers:
       - name: shared-mysql-service-broker
-        image: making/shared-mysql-service-broker:0.0.2
+        image: making/shared-mysql-service-broker:0.0.3
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

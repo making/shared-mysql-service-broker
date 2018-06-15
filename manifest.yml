@@ -1,7 +1,7 @@
 applications:
 - name: shared-mysql-service-broker
   memory: 1g
-  path: target/shared-smysql-service-broker-0.0.1.jar
+  path: target/shared-smysql-service-broker-0.0.3.jar
   services:
   - shared-mysql
 #  env:
